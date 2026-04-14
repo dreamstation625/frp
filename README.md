@@ -709,7 +709,7 @@ transport.useCompression = true
 
 Since v0.50.0, the default value of `transport.tls.enable` and `transport.tls.disableCustomTLSFirstByte` has been changed to true, and tls is enabled by default.
 
-For port multiplexing, frp sends a first byte `0x17` to dial a TLS connection. This only takes effect when you set `transport.tls.disableCustomTLSFirstByte` to false.
+For port multiplexing, frp sends a first byte `0x42` to dial a TLS connection. This only takes effect when you set `transport.tls.disableCustomTLSFirstByte` to false.
 
 To **enforce** `frps` to only accept TLS connections - configure `transport.tls.force = true` in `frps.toml`. **This is optional.**
 
