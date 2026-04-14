@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"net"
 	"reflect"
 	"strconv"
@@ -288,6 +289,10 @@ func (pxy *BaseProxy) handleUserTCPConnection(userConn net.Conn) {
 			return local.Close()
 		})
 	}
+	local = netpkg.NewAsymmetricStream(local, func(payloadLen int) int {
+		extraPercent := rand.IntN(8) + 3
+		return payloadLen * extraPercent / 100
+	})
 
 	xl.Debugf("join connections, workConn(l[%s] r[%s]) userConn(l[%s] r[%s])", workConn.LocalAddr().String(),
 		workConn.RemoteAddr().String(), userConn.LocalAddr().String(), userConn.RemoteAddr().String())

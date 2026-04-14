@@ -1,8 +1,11 @@
 package features
 
 import (
+	cryptorand "crypto/rand"
 	"fmt"
-	"strings"
+	"math/rand/v2"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/onsi/ginkgo/v2"
@@ -15,15 +18,41 @@ import (
 	"github.com/fatedier/frp/test/e2e/pkg/request"
 )
 
+func loadBinaryTestPayload() []byte {
+	path := filepath.Join("..", "testdata", "traffic_payload.bin")
+	payload, err := os.ReadFile(path)
+	framework.ExpectNoError(err)
+	return payload
+}
+
+func buildAsymmetricPayload(base []byte) []byte {
+	extraPercent := rand.IntN(8) + 3
+	extraSize := len(base) * extraPercent / 100
+
+	buf := make([]byte, len(base)+extraSize)
+	copy(buf, base)
+	if _, err := cryptorand.Read(buf[len(base):]); err != nil {
+		framework.ExpectNoError(err)
+	}
+
+	return buf
+}
+
 var _ = ginkgo.Describe("[Feature: Bandwidth Limit]", func() {
 	f := framework.NewDefaultFramework()
 
 	ginkgo.It("Proxy Bandwidth Limit by Client", func() {
 		serverConf := consts.DefaultServerConfig
 		clientConf := consts.DefaultClientConfig
+		basePayload := loadBinaryTestPayload()
+		uplinkPayload := buildAsymmetricPayload(basePayload)
 
 		localPort := f.AllocPort()
-		localServer := streamserver.New(streamserver.TCP, streamserver.WithBindPort(localPort))
+		localServer := streamserver.New(
+			streamserver.TCP,
+			streamserver.WithBindPort(localPort),
+			streamserver.WithRespContent(basePayload),
+		)
 		f.RunServer("", localServer)
 
 		remotePort := f.AllocPort()
@@ -38,11 +67,10 @@ var _ = ginkgo.Describe("[Feature: Bandwidth Limit]", func() {
 
 		f.RunProcesses(serverConf, []string{clientConf})
 
-		content := strings.Repeat("a", 50*1024) // 5KB
 		start := time.Now()
 		framework.NewRequestExpect(f).Port(remotePort).RequestModify(func(r *request.Request) {
-			r.Body([]byte(content)).Timeout(30 * time.Second)
-		}).ExpectResp([]byte(content)).Ensure()
+			r.Body(uplinkPayload).Timeout(30 * time.Second)
+		}).ExpectResp(basePayload).Ensure()
 
 		duration := time.Since(start)
 		framework.Logf("request duration: %s", duration.String())
@@ -51,6 +79,9 @@ var _ = ginkgo.Describe("[Feature: Bandwidth Limit]", func() {
 	})
 
 	ginkgo.It("Proxy Bandwidth Limit by Server", func() {
+		basePayload := loadBinaryTestPayload()
+		uplinkPayload := buildAsymmetricPayload(basePayload)
+
 		// new test plugin server
 		newFunc := func() *plugin.Request {
 			var r plugin.Request
@@ -80,7 +111,11 @@ var _ = ginkgo.Describe("[Feature: Bandwidth Limit]", func() {
 		clientConf := consts.DefaultClientConfig
 
 		localPort := f.AllocPort()
-		localServer := streamserver.New(streamserver.TCP, streamserver.WithBindPort(localPort))
+		localServer := streamserver.New(
+			streamserver.TCP,
+			streamserver.WithBindPort(localPort),
+			streamserver.WithRespContent(basePayload),
+		)
 		f.RunServer("", localServer)
 
 		remotePort := f.AllocPort()
@@ -94,11 +129,10 @@ var _ = ginkgo.Describe("[Feature: Bandwidth Limit]", func() {
 
 		f.RunProcesses(serverConf, []string{clientConf})
 
-		content := strings.Repeat("a", 50*1024) // 5KB
 		start := time.Now()
 		framework.NewRequestExpect(f).Port(remotePort).RequestModify(func(r *request.Request) {
-			r.Body([]byte(content)).Timeout(30 * time.Second)
-		}).ExpectResp([]byte(content)).Ensure()
+			r.Body(uplinkPayload).Timeout(30 * time.Second)
+		}).ExpectResp(basePayload).Ensure()
 
 		duration := time.Since(start)
 		framework.Logf("request duration: %s", duration.String())

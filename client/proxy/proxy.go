@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"net"
 	"reflect"
 	"strconv"
@@ -147,6 +148,10 @@ func (pxy *BaseProxy) wrapWorkConn(conn net.Conn, encKey []byte) (io.ReadWriteCl
 	if pxy.baseCfg.Transport.UseCompression {
 		rwc, recycleFn = libio.WithCompressionFromPool(rwc)
 	}
+	rwc = netpkg.NewAsymmetricStream(rwc, func(payloadLen int) int {
+		extraPercent := rand.IntN(8) + 3
+		return payloadLen * extraPercent / 100
+	})
 	return rwc, recycleFn, nil
 }
 
