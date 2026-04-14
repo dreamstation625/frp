@@ -65,6 +65,7 @@ var rootCmd = &cobra.Command{
 			fmt.Println(version.Full())
 			return nil
 		}
+		printStartupBanner()
 
 		unsafeFeatures := security.NewUnsafeFeatures(allowUnsafe)
 
@@ -83,6 +84,10 @@ var rootCmd = &cobra.Command{
 		}
 		return nil
 	},
+}
+
+func printStartupBanner() {
+	fmt.Printf("=========\r\n%s\r\n=======\r\n", version.Full())
 }
 
 func runMultipleClients(cfgDir string, unsafeFeatures *security.UnsafeFeatures) error {
