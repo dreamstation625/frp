@@ -58,7 +58,7 @@ var rootCmd = &cobra.Command{
 			fmt.Println(version.Full())
 			return nil
 		}
-		printStartupBanner()
+		fmt.Print(buildStartupBanner("frps"))
 
 		var (
 			svrCfg         *v1.ServerConfig
@@ -102,8 +102,16 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-func printStartupBanner() {
-	fmt.Printf("=========\r\n%s\r\n=======\r\n", version.Full())
+func buildStartupBanner(component string) string {
+	title := fmt.Sprintf(" %s %s ", strings.ToUpper(component), version.Full())
+	border := strings.Repeat("=", len(title))
+	return fmt.Sprintf("%s\n%s\n%s\n", border, title, border)
+}
+
+func logStartupBanner(component string) {
+	for _, line := range strings.Split(strings.TrimSpace(buildStartupBanner(component)), "\n") {
+		log.Infof("%s", line)
+	}
 }
 
 func Execute() {
@@ -115,6 +123,7 @@ func Execute() {
 
 func runServer(cfg *v1.ServerConfig) (err error) {
 	log.InitLogger(cfg.Log.To, cfg.Log.Level, int(cfg.Log.MaxDays), cfg.Log.DisablePrintColor)
+	logStartupBanner("frps")
 
 	if cfgFile != "" {
 		log.Infof("frps uses config file: %s", cfgFile)

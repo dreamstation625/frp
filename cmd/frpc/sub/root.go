@@ -65,7 +65,7 @@ var rootCmd = &cobra.Command{
 			fmt.Println(version.Full())
 			return nil
 		}
-		printStartupBanner()
+		fmt.Print(buildStartupBanner("frpc"))
 
 		unsafeFeatures := security.NewUnsafeFeatures(allowUnsafe)
 
@@ -86,8 +86,16 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-func printStartupBanner() {
-	fmt.Printf("=========\r\n%s\r\n=======\r\n", version.Full())
+func buildStartupBanner(component string) string {
+	title := fmt.Sprintf(" %s %s ", strings.ToUpper(component), version.Full())
+	border := strings.Repeat("=", len(title))
+	return fmt.Sprintf("%s\n%s\n%s\n", border, title, border)
+}
+
+func logStartupBanner(component string) {
+	for _, line := range strings.Split(strings.TrimSpace(buildStartupBanner(component)), "\n") {
+		log.Infof("%s", line)
+	}
 }
 
 func runMultipleClients(cfgDir string, unsafeFeatures *security.UnsafeFeatures) error {
@@ -201,6 +209,7 @@ func startServiceWithAggregator(
 	cfgFile string,
 ) error {
 	log.InitLogger(cfg.Log.To, cfg.Log.Level, int(cfg.Log.MaxDays), cfg.Log.DisablePrintColor)
+	logStartupBanner("frpc")
 
 	if cfgFile != "" {
 		log.Infof("start frpc service for config file [%s] with aggregated configuration", cfgFile)
