@@ -33,8 +33,6 @@ var Logger *log.Logger
 
 func init() {
 	Logger = log.New(
-		log.WithCaller(true),
-		log.AddCallerSkip(1),
 		log.WithLevel(log.InfoLevel),
 	)
 }

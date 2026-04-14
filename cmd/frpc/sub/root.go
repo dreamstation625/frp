@@ -212,8 +212,8 @@ func startServiceWithAggregator(
 	logStartupBanner("client")
 
 	if cfgFile != "" {
-		log.Infof("start frpc service for config file [%s] with aggregated configuration", cfgFile)
-		defer log.Infof("frpc service for config file [%s] stopped", cfgFile)
+		log.Infof("start client service for config file [%s] with aggregated configuration", cfgFile)
+		defer log.Infof("client service for config file [%s] stopped", cfgFile)
 	}
 	svr, err := client.NewService(client.ServiceOptions{
 		Common:                 cfg,

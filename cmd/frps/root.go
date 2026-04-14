@@ -126,16 +126,16 @@ func runServer(cfg *v1.ServerConfig) (err error) {
 	logStartupBanner("server")
 
 	if cfgFile != "" {
-		log.Infof("frps uses config file: %s", cfgFile)
+		log.Infof("server uses config file: %s", cfgFile)
 	} else {
-		log.Infof("frps uses command line arguments for config")
+		log.Infof("server uses command line arguments for config")
 	}
 
 	svr, err := server.NewService(cfg)
 	if err != nil {
 		return err
 	}
-	log.Infof("frps started successfully")
+	log.Infof("server started successfully")
 	svr.Run(context.Background())
 	return
 }
