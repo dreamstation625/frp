@@ -58,7 +58,7 @@ var rootCmd = &cobra.Command{
 			fmt.Println(version.Full())
 			return nil
 		}
-		fmt.Print(buildStartupBanner("frps"))
+		fmt.Print(buildStartupBanner("server"))
 
 		var (
 			svrCfg         *v1.ServerConfig
@@ -123,7 +123,7 @@ func Execute() {
 
 func runServer(cfg *v1.ServerConfig) (err error) {
 	log.InitLogger(cfg.Log.To, cfg.Log.Level, int(cfg.Log.MaxDays), cfg.Log.DisablePrintColor)
-	logStartupBanner("frps")
+	logStartupBanner("server")
 
 	if cfgFile != "" {
 		log.Infof("frps uses config file: %s", cfgFile)

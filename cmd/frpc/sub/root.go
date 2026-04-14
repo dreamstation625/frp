@@ -65,7 +65,7 @@ var rootCmd = &cobra.Command{
 			fmt.Println(version.Full())
 			return nil
 		}
-		fmt.Print(buildStartupBanner("frpc"))
+		fmt.Print(buildStartupBanner("client"))
 
 		unsafeFeatures := security.NewUnsafeFeatures(allowUnsafe)
 
@@ -209,7 +209,7 @@ func startServiceWithAggregator(
 	cfgFile string,
 ) error {
 	log.InitLogger(cfg.Log.To, cfg.Log.Level, int(cfg.Log.MaxDays), cfg.Log.DisablePrintColor)
-	logStartupBanner("frpc")
+	logStartupBanner("client")
 
 	if cfgFile != "" {
 		log.Infof("start frpc service for config file [%s] with aggregated configuration", cfgFile)
