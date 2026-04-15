@@ -16,7 +16,9 @@ package log
 
 import (
 	"bytes"
+	"io"
 	"os"
+	"time"
 
 	"github.com/fatedier/golib/log"
 )
@@ -37,16 +39,10 @@ func init() {
 	)
 }
 
-func InitLogger(logPath string, levelStr string, maxDays int, disableLogColor bool) {
+func InitLogger(logPath string, levelStr string, maxDays int, disableLogColor bool, writeAndConsole bool) {
 	options := []log.Option{}
 	if logPath == "console" {
-		if !disableLogColor {
-			options = append(options,
-				log.WithOutput(log.NewConsoleWriter(log.ConsoleConfig{
-					Colorful: true,
-				}, os.Stdout)),
-			)
-		}
+		options = append(options, log.WithOutput(newConsoleOutput(disableLogColor)))
 	} else {
 		writer := log.NewRotateFileWriter(log.RotateFileConfig{
 			FileName: logPath,
@@ -54,7 +50,14 @@ func InitLogger(logPath string, levelStr string, maxDays int, disableLogColor bo
 			MaxDays:  maxDays,
 		})
 		writer.Init()
-		options = append(options, log.WithOutput(writer))
+		if writeAndConsole {
+			options = append(options, log.WithOutput(&teeOutput{
+				file:    writer,
+				console: newConsoleOutput(disableLogColor),
+			}))
+		} else {
+			options = append(options, log.WithOutput(writer))
+		}
 	}
 
 	level, err := log.ParseLevel(levelStr)
@@ -63,6 +66,50 @@ func InitLogger(logPath string, levelStr string, maxDays int, disableLogColor bo
 	}
 	options = append(options, log.WithLevel(level))
 	Logger = Logger.WithOptions(options...)
+}
+
+func newConsoleOutput(disableLogColor bool) io.Writer {
+	if disableLogColor {
+		return os.Stdout
+	}
+	return log.NewConsoleWriter(log.ConsoleConfig{
+		Colorful: true,
+	}, os.Stdout)
+}
+
+type teeOutput struct {
+	file    io.Writer
+	console io.Writer
+}
+
+func (w *teeOutput) Write(p []byte) (n int, err error) {
+	if w.console != nil {
+		if _, err = w.console.Write(p); err != nil {
+			return 0, err
+		}
+	}
+	if w.file != nil {
+		return w.file.Write(p)
+	}
+	return len(p), nil
+}
+
+func (w *teeOutput) WriteLog(p []byte, level log.Level, when time.Time) (n int, err error) {
+	if w.console != nil {
+		if lw, ok := w.console.(log.Writer); ok {
+			if _, err = lw.WriteLog(p, level, when); err != nil {
+				return 0, err
+			}
+		} else {
+			if _, err = w.console.Write(p); err != nil {
+				return 0, err
+			}
+		}
+	}
+	if w.file != nil {
+		return w.file.Write(p)
+	}
+	return len(p), nil
 }
 
 func Errorf(format string, v ...any) {

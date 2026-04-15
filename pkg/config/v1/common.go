@@ -112,6 +112,9 @@ type LogConfig struct {
 	// MaxDays specifies the maximum number of days to store log information
 	// before deletion.
 	MaxDays int64 `json:"maxDays"`
+	// WriteAndConsole enables writing logs to stdout in addition to file output
+	// when log.to is configured as a file path.
+	WriteAndConsole bool `json:"writeAndConsole,omitempty"`
 	// DisablePrintColor disables log colors when log.to is "console".
 	DisablePrintColor bool `json:"disablePrintColor,omitempty"`
 }

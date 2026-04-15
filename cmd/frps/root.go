@@ -122,7 +122,7 @@ func Execute() {
 }
 
 func runServer(cfg *v1.ServerConfig) (err error) {
-	log.InitLogger(cfg.Log.To, cfg.Log.Level, int(cfg.Log.MaxDays), cfg.Log.DisablePrintColor)
+	log.InitLogger(cfg.Log.To, cfg.Log.Level, int(cfg.Log.MaxDays), cfg.Log.DisablePrintColor, cfg.Log.WriteAndConsole)
 	logStartupBanner("server")
 
 	if cfgFile != "" {

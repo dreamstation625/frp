@@ -87,6 +87,8 @@ log.to = "./frps.log"
 # trace, debug, info, warn, error
 log.level = "info"
 log.maxDays = 3
+# write logs to stdout at the same time when log.to is a file path, default is false
+log.writeAndConsole = false
 # disable log colors when log.to is console, default is false
 log.disablePrintColor = false
 
