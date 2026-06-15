@@ -1,0 +1,2 @@
+PS C:\code\frp> go build -o server.exe ./cmd/frps
+PS C:\code\frp> go build -o client.exe ./cmd/frpc
